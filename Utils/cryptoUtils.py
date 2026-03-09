@@ -17,7 +17,11 @@ def hash(m)->bytes:
         m = bytes(m, 'utf-8')
     return sha256(m).digest()
 
+# hash_length作用：接受一个消息 msg 和一个整数 int，并返回一个经过多次哈希操作后的哈希值
 def hash_length(msg, int: int):
+    # 它首先对 msg 进行哈希处理，
+    # 然后进入一个循环 int 次，
+    # 循环中每次将一个由 i 构成的字节串添加到 msg 后，再进行哈希操作，并将结果累加
     h = hash(msg)
     i = 0
     while i < int:
