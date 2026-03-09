@@ -11,10 +11,15 @@ from dataclasses import dataclass
 
 @dataclass
 class PARAMS:
+    # ks：给结果加密/解密
     ks: bytes = get_random_bytes(16)
+    # kx：给关键词生成和 XSet 相关的陷门
     kx: bytes = get_random_bytes(16)
+    # ki：给文档 id 映射成群里的元素
     ki: bytes = get_random_bytes(16)
+    # kz：生成每条记录位置相关的随机量 z
     kz: bytes = get_random_bytes(16)
+    # kt：TSet 建好后得到的密钥
     kt: bytes = None
 
 
@@ -28,29 +33,39 @@ class EDB:
         p: False positive rate of BF
         k: Expansion factor of TSet
         """
+        # 候选集索引TSet（第一个关键词索引的结果）
         self.tset = TSet(n, k)
+        # XSet，用布隆过滤器存储
         self.xset = BF(n, p)
 
+    # EDBSetup() 建库
     def EDBSetup(self, fpath_wid: str, keys: PARAMS):
         T = dict()
 
-        # read the inverted index
+        # 读入倒排索引
+        # dct_wid = {w1: [id1, id2, ...], w2: [id1, id2, ...], ...}
         dct_wid = read_index(fpath_wid)
 
         # every keyword - ids
         for w, ids in dct_wid.items():
+            # ke： 由ks和关键词w导出的对称加密密钥
             ke = prf(keys.ks, w)
+            # xtrap： 由kx和关键词w导出的群/域元素，用在XSet
             xtrap = pbc.prfToZr(keys.kx, w)
             # every id in ids
             t = []
+            # i: c
             for i in range(len(ids)):
                 # TSet
+                # ind: 真正的文档 id
                 ind = ids[i]
+                # 把文档id映射到群/域里的一个元素
                 xind = pbc.prfToZr(keys.ki, ind)
+                # 
                 z = pbc.prfToZr(keys.kz, w + str(i))
                 y = pbc.mul2Zr(xind, ~z)
                 y = pbc.Zr2Bytes(y)
-                e = AES_enc(ke, ind)
+                # struct.pack("H", len(y)) 把len(y)打包成2字节的二进制数据
                 element = struct.pack("H", len(y)) + y + e
                 t.append(element)
                 # XSet
@@ -65,7 +80,7 @@ class EDB:
 Complete search process
 """
 
-
+# search（） 查询
 def search(ws: List[str], edb: EDB, keys: PARAMS) -> List[int]:
     # Tset
     w1 = ws[0]
