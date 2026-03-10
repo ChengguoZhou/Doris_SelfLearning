@@ -6,6 +6,7 @@ from Utils.cryptoUtils import prf, AES_enc, AES_dec
 from Utils.pbcUtils import pbcUtil
 from Utils.TSet import TSet, cal_size, genStag
 from Utils.BF import BF, get_pos_set
+# 新增的核心模块SHVE = 把 BF/XSet 变成“可加密查询”的工具
 from Utils.SHVE import SHVE
 from Utils.fileUtils import read_index
 from dataclasses import dataclass
@@ -28,6 +29,7 @@ class EDB:
     def __init__(self, n: int, p: float, k: int) -> None:
         self.n = n
         self.p = p
+        # 和OXT一样，先建TSet和BF版的XSet
         self.tset = TSet(n, k)
         self.xset = BF(n, p)
 
