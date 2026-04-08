@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.9 (Doris_SelfLearning)" project-jdk-type="Python SDK" />
+  <component name="Black">
+    <option name="sdkName" value="Remote 3.8 (sftp://root@192.168.42.130:22/usr/bin/python3)" />
+  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote 3.8 (sftp://root@192.168.42.130:22/root/Doris/.venv/bin/python)" project-jdk-type="Python SDK" />
+  <component name="PyPackaging">
+    <option name="earlyReleasesAsUpgrades" value="true" />
+  </component>
 </project>

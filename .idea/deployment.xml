@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@192.168.42.130:22 password (5)" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="featurize@workspace.featurize.cn:12268 password">
         <serverdata>
@@ -16,6 +16,49 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="root@192.168.42.130:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/Doris" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@192.168.42.130:22 password (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_262" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@192.168.42.130:22 password (3)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_33" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@192.168.42.130:22 password (4)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="root@192.168.42.130:22 password (5)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/Doris" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="zcg@192.168.42.130:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/Doris" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>
