@@ -1,0 +1,47 @@
+q,candidate_pos,doc_id,query_keywords
+查询关键词总数,该候选在 TSet 返回列表中的位置 i，从 1 开始,该候选对应的真实文档 id,用于该候选实验的真实查询关键词组合，使用 | 分隔
+2,1,13,gas|prices
+2,2,14,gas|phillip
+2,3,18,gas|position
+2,4,38,gas|report
+2,5,72,gas|north
+3,1,13,gas|prices|index
+3,2,14,gas|phillip|prices
+3,5,72,gas|north|america
+3,6,95,gas|california|play
+3,7,104,gas|market|prices
+4,1,13,gas|prices|index|monthly
+4,2,14,gas|phillip|prices|index
+4,5,72,gas|north|america|avg
+4,6,95,gas|california|play|actual
+4,7,104,gas|market|prices|capacity
+5,1,13,gas|prices|index|monthly|physical
+5,2,14,gas|phillip|prices|index|monthly
+5,5,72,gas|north|america|avg|product
+5,6,95,gas|california|play|actual|different
+5,7,104,gas|market|prices|capacity|report
+6,1,13,gas|prices|index|monthly|physical|buyer
+6,2,14,gas|phillip|prices|index|monthly|physical
+6,6,95,gas|california|play|actual|different|marginal
+6,7,104,gas|market|prices|capacity|report|capacitycenter
+6,8,108,gas|function|laird|managing|shareholder|throughput related
+7,1,13,gas|prices|index|monthly|physical|buyer|counterparty
+7,2,14,gas|phillip|prices|index|monthly|physical|buyer
+7,6,95,gas|california|play|actual|different|marginal|presentation
+7,7,104,gas|market|prices|capacity|report|capacitycenter|image
+7,8,108,gas|function|laird|managing|shareholder|throughput related|weather
+8,1,13,gas|prices|index|monthly|physical|buyer|counterparty|financial
+8,2,14,gas|phillip|prices|index|monthly|physical|buyer|counterparty
+8,6,95,gas|california|play|actual|different|marginal|presentation|probably
+8,7,104,gas|market|prices|capacity|report|capacitycenter|image|intelligence
+8,9,109,gas|thanks|index|black|management|assets|bob|like
+9,1,13,gas|prices|index|monthly|physical|buyer|counterparty|financial|juan
+9,2,14,gas|phillip|prices|index|monthly|physical|buyer|counterparty|financial
+9,7,104,gas|market|prices|capacity|report|capacitycenter|image|intelligence|notices
+9,9,109,gas|thanks|index|black|management|assets|bob|like|portfolio
+9,10,134,gas|market|california|basin|key|pipelines|american|biltmore|clients
+10,1,13,gas|prices|index|monthly|physical|buyer|counterparty|financial|juan|phone
+10,2,14,gas|phillip|prices|index|monthly|physical|buyer|counterparty|financial|juan
+10,7,104,gas|market|prices|capacity|report|capacitycenter|image|intelligence|notices|pick
+10,10,134,gas|market|california|basin|key|pipelines|american|biltmore|clients|jsteele
+10,11,155,gas|phillip|market|ferc|power|update|committee|time|attorney|code

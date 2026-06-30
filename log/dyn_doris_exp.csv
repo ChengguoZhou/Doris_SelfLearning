@@ -1,0 +1,4 @@
+dataset,query,docs,setup_s,search_s,update_s,post_update_search_s,matches_before,matches_after,add_runs,delete_runs,buffer_add,buffer_delete,live_docs,storage_bytes
+enron,trade buyer,14,0.018389,0.000757,0.006645,0.000391,2,1,2,1,0,0,15,71264
+enwiki,hospital patient,2,0.075667,0.000233,0.155576,0.000396,1,0,2,1,0,0,3,686314
+synthetic,kw0 kw7,128,0.099424,0.000946,0.001364,0.001093,10,9,5,1,0,0,129,206796
