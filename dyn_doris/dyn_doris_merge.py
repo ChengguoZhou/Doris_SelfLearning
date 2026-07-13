@@ -43,8 +43,10 @@ def merge_runs(
         for run_id in delete_run_ids
         if run_id in state.DelRunTbl
     ]
+    # next_level: 新 run 放到被合并 run 的下一层。
     next_level = max(old_levels, default=-1) + 1
 
+    # add_records: 从旧 add runs 解密恢复出的 logical document versions。
     add_records: List[DocumentVersionRecord] = []
     for run_id in add_run_ids:
         run = server.add_runs[run_id]
@@ -52,6 +54,7 @@ def merge_runs(
             assert payload.document is not None
             add_records.append(payload.document)
 
+    # tombstones: 从旧 delete runs 解密恢复出的 logical delete records。
     tombstones: List[TombstoneRecord] = []
     for run_id in delete_run_ids:
         run = server.delete_runs[run_id]
@@ -60,16 +63,21 @@ def merge_runs(
             tombstones.append(payload.tombstone)
 
     # DynDorisMerge step 4-5.
+    # dead_set: 本次 merge 内 tombstone 指向的旧 version ids。
     dead_set = {record.vid_old for record in tombstones}
+    # live_records: 过滤掉已被 tombstone 废弃的 add records。
     live_records = [record for record in add_records if record.vid not in dead_set]
 
     # DynDorisMerge step 6. A tombstone can be dropped only if its target add run
     # is included in this merge. Otherwise the target may still be outside.
+    # covered_add_runs: 本次 merge 覆盖到的 add runs。
     covered_add_runs = set(add_run_ids)
+    # kept_tombstones: 目标 add run 不在本次 merge 中的 tombstone 需要继续保留。
     kept_tombstones = [
         record for record in tombstones if record.target_loc not in covered_add_runs
     ]
 
+    # 删除旧 runs 后，用 logical records 重新 build fresh Doris runs。
     server.delete_runs_by_id(add_run_ids, delete_run_ids)
     for run_id in add_run_ids:
         state.RunTbl.pop(run_id, None)
@@ -78,6 +86,7 @@ def merge_runs(
 
     new_add_run_id = None
     if live_records:
+        # fresh add run id 保证 merge 后不会复用旧 run key。
         new_add_run_id = _fresh_merge_run_id("rho", current_time)
         run = build_encrypted_run(
             run_id=new_add_run_id,
@@ -104,6 +113,7 @@ def merge_runs(
 
     new_delete_run_id = None
     if kept_tombstones:
+        # 保留的 tombstones 也重新构建为 fresh delete run。
         new_delete_run_id = _fresh_merge_run_id("sigma", current_time)
         run = build_encrypted_run(
             run_id=new_delete_run_id,

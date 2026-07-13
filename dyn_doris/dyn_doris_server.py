@@ -16,7 +16,9 @@ class DynDorisServer:
     """In-memory encrypted run store."""
 
     def __init__(self) -> None:
+        # add_runs: 服务器保存的 encrypted add runs。
         self.add_runs: Dict[str, EncryptedRun] = {}
+        # delete_runs: 服务器保存的 encrypted delete runs。
         self.delete_runs: Dict[str, EncryptedRun] = {}
 
     def upload_run(self, run: EncryptedRun) -> None:
@@ -42,7 +44,9 @@ class DynDorisServer:
 
     # Corresponds to ServerSearch step 3-5.
     def search(self, add_tokens: List[SearchToken], delete_tokens: List[SearchToken]) -> ServerSearchResult:
+        # cand: add run 查询得到的 encrypted candidate payloads。
         cand: List[bytes] = []
+        # dead: delete run 查询得到的 encrypted tombstone payloads。
         dead: List[bytes] = []
 
         for token in add_tokens:

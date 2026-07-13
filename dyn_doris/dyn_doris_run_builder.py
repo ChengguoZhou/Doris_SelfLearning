@@ -33,9 +33,13 @@ sspe = SSPE_XF()
 class RunKeys:
     """Fresh run-local keys derived from K_master and a fresh run id."""
 
+    # K_t: 预留给 TSet 的 run-local key；当前 TSet.setup 内部自行生成 key
     K_t: bytes
+    # K_x: 派生 run-local XSet tags 的 key
     K_x: bytes
+    # K_e: 加密 logical record payload 的 AES key
     K_e: bytes
+    # run_key_id: 用于测试 fresh key 是否变化的辅助标识
     run_key_id: bytes
 
 
@@ -55,6 +59,7 @@ def derive_run_keys(keys: DynDorisKeys, run_id: str, run_type: RunType) -> RunKe
 
 
 def record_keywords(record: object) -> Set[str]:
+    # add record 使用当前版本 W；delete record 使用旧版本 W_old。
     if isinstance(record, DocumentVersionRecord):
         return set(record.W)
     if isinstance(record, TombstoneRecord):
@@ -63,12 +68,14 @@ def record_keywords(record: object) -> Set[str]:
 
 
 def _payload(run_type: RunType, record: object) -> bytes:
+    # payload 中保留 record 类型，客户端解密后可恢复强类型对象。
     return pickle.dumps({"record_type": run_type, "record": record})
 
 
 def decrypt_payload(run: EncryptedRun, payload: bytes, keys: DynDorisKeys) -> DecryptedPayload:
     """Client-side payload decryption."""
 
+    # 只有客户端持有 keys，可以根据 run id/type 重新派生 payload key。
     run_keys = derive_run_keys(keys, run.run_id, run.run_type)
     data = pickle.loads(AES_dec(run_keys.K_e, payload))
     record_type = data["record_type"]
@@ -105,12 +112,17 @@ def build_encrypted_run(
     assert records, "cannot build an empty encrypted run"
 
     run_keys = derive_run_keys(keys, run_id, run_type)
+    # postings: TSet posting list，keyword -> handles。
     postings: Dict[str, List[bytes]] = {}
+    # xset: run-local 合取标签集合，用于 DorisSearch 过滤非 s-term 关键词。
     xset: Set[bytes] = set()
+    # positions: 每个 keyword 在 posting list 中的本地位置计数。
     positions: Dict[str, int] = {}
+    # encrypted_payloads: handle -> Enc(K_e, logical record)。
     encrypted_payloads: Dict[bytes, bytes] = {}
 
     for record in records:
+        # handle 是服务器可见的随机索引柄，不暴露文档 id/version。
         handle = secrets.token_bytes(16)
         encrypted_payloads[handle] = AES_enc(run_keys.K_e, _payload(run_type, record))
         keywords = sorted(record_keywords(record))
@@ -171,8 +183,10 @@ def make_search_token(run: EncryptedRun, query: Sequence[str], keys: DynDorisKey
     """
 
     assert query, "query must not be empty"
+    # SelectSTerm(Q): 当前原型固定选择 Q[0] 作为 s-term。
     s_term = query[0]
     run_keys = derive_run_keys(keys, run.run_id, run.run_type)
+    # stag 用于从当前 run 的 TSet 中取出 s-term posting list。
     stag = genStag(run.tset_key, s_term)
     handles = run.tset.retrive(stag)
     xtokens: List[object] = []
@@ -202,6 +216,7 @@ def search_encrypted_run(run: EncryptedRun, token: SearchToken) -> List[bytes]:
     """
 
     assert token.run_id == run.run_id
+    # server 只能拿到 handles 并返回加密 payload，不知道 payload 的语义。
     handles = run.tset.retrive(token.stag)
     result: List[bytes] = []
     for i, handle in enumerate(handles):

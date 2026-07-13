@@ -41,17 +41,23 @@ class DynDorisClient:
         level_capacity: int = 2,
         server: Optional[DynDorisServer] = None,
     ) -> None:
+        # keys: 客户端主密钥；服务器不持有这些密钥。
         self.keys = DynDorisKeys(
             K_master=get_random_bytes(16),
             K_vid=get_random_bytes(16),
         )
+        # state: DynDorisSetup 输出的客户端状态。
         self.state = ClientState(MergePolicy=MergePolicy(level_capacity=level_capacity))
+        # buffer_capacity: BufA/BufD 达到该容量时触发 flush。
         self.buffer_capacity = buffer_capacity
+        # server: 只保存 encrypted runs 的内存服务器。
         self.server = server or DynDorisServer()
+        # epoch: merge/rebuild generation。
         self.epoch = 0
 
     # Corresponds to DynDorisSetup step 2-7.
     def setup(self, db: Dict[str, Iterable[str]]) -> None:
+        # initial: setup 阶段生成的 live document versions。
         initial: List[DocumentVersionRecord] = []
         for doc_id, keywords in db.items():
             W = set(keywords)
@@ -70,6 +76,7 @@ class DynDorisClient:
             self.state.DocState[doc_id] = record
 
         for chunk in self._chunks(initial, self.buffer_capacity):
+            # 每个 chunk 构建一个 fresh add run。
             run_id = self._fresh_run_id("rho")
             run = build_encrypted_run(
                 run_id=run_id,
@@ -100,6 +107,7 @@ class DynDorisClient:
         if not query:
             return ClientSearchResult([], 0, 0, 0)
 
+        # 每个 add/delete run 都生成独立 token；server 不接收客户端状态表。
         add_tokens = [
             make_search_token(self.server.add_runs[run_id], query, self.keys)
             for run_id in self.state.RunTbl
@@ -113,12 +121,14 @@ class DynDorisClient:
 
     # Corresponds to ClientFilter step 1-5.
     def client_filter(self, cand: List[bytes], dead: List[bytes]) -> ClientSearchResult:
+        # dead_set: 客户端解密 tombstone 后得到的旧 version ids。
         dead_set = set()
         for payload in dead:
             decoded = self._decrypt_payload_from_any_run(payload, "delete")
             assert decoded.tombstone is not None
             dead_set.add(decoded.tombstone.vid_old)
 
+        # ans: doc id -> (ver, tau)，同一文档只保留最新 live version。
         ans: Dict[str, Tuple[int, int]] = {}
         killed_count = 0
         for payload in cand:
@@ -161,6 +171,7 @@ class DynDorisClient:
         W_old = set(old.W) if old else set()
         if old and W_old:
             # DynDorisAdd step 4: tombstone the old document version.
+            # Add 不修改旧 encrypted entry，而是 tombstone 旧版本。
             self.state.BufD.append(
                 TombstoneRecord(
                     vid_old=old.vid,
@@ -173,6 +184,7 @@ class DynDorisClient:
         ver_new = old.ver + 1 if old else 1
         W_new = W_old | {w}
         vid_new = self._derive_vid(doc_id, ver_new)
+        # new_record: 加入关键词后的新 document version，先进入 BufA。
         new_record = DocumentVersionRecord(
             id=doc_id,
             ver=ver_new,
@@ -197,6 +209,7 @@ class DynDorisClient:
 
         # Security invariant: delete is not a public PRF(K, w || id) tag.
         # It tombstones the old document version.
+        # Delete 不生成稳定公开删除标签，只记录被废弃的旧 vid。
         self.state.BufD.append(
             TombstoneRecord(
                 vid_old=old.vid,
@@ -208,10 +221,12 @@ class DynDorisClient:
 
         W_new = W_old - {w}
         if not W_new:
+            # 删除后 keyword set 为空，文档不再有 live version。
             self.state.DocState.pop(doc_id, None)
         else:
             ver_new = old.ver + 1
             vid_new = self._derive_vid(doc_id, ver_new)
+            # 删除单个关键词后，剩余关键词形成新的 live version。
             new_record = DocumentVersionRecord(
                 id=doc_id,
                 ver=ver_new,
@@ -230,6 +245,7 @@ class DynDorisClient:
         if not self.state.BufA:
             return None
 
+        # records: 本次 flush 的 add buffer 快照。
         records = list(self.state.BufA)
         run_id = self._fresh_run_id("rho")
         run = build_encrypted_run(
@@ -262,6 +278,7 @@ class DynDorisClient:
         if not self.state.BufD:
             return None
 
+        # records: 本次 flush 的 delete buffer 快照。
         records = list(self.state.BufD)
         run_id = self._fresh_run_id("sigma")
         run = build_encrypted_run(
@@ -314,6 +331,7 @@ class DynDorisClient:
         raise ValueError("payload does not belong to any known run")
 
     def _maintenance(self) -> None:
+        # 简单维护策略：buffer 满时立即 flush；自动 merge 暂未实现。
         if len(self.state.BufA) >= self.buffer_capacity:
             self.flush_add_buffer()
         if len(self.state.BufD) >= self.buffer_capacity:
